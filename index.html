@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diário de Projetos</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+<style>
+  /* Color tokens: light by default, dark via media query or manual toggle */
+  :root {
+    --bg: #fbfaf7; --fg: #1d1d1b; --muted: #6b6a65; --line: #e2dfd7;
+    --accent: #b4491f; --code-bg: #f0ede5; --card: #f4f1ea;
+    --font: Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14151a; --fg: #e6e4de; --muted: #8d8b84; --line: #2a2c35;
+      --accent: #ff8a5c; --code-bg: #1d1f27; --card: #1a1c23;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14151a; --fg: #e6e4de; --muted: #8d8b84; --line: #2a2c35;
+    --accent: #ff8a5c; --code-bg: #1d1f27; --card: #1a1c23;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); line-height: 1.7; font-size: 18px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 80px; }
+  header.site { display: flex; align-items: center; justify-content: space-between; padding: 28px 0 20px; border-bottom: 1px solid var(--line); margin-bottom: 8px; gap: 12px; flex-wrap: wrap; }
+  .brand { font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--fg); }
+  .brand span { color: var(--accent); }
+  nav { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-family: var(--mono); font-size: 14px; }
+  .btn { background: none; border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 5px 12px; font: 14px var(--mono); cursor: pointer; display: inline-block; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .btn.primary:hover { color: var(--bg); opacity: .9; }
+  .btn.danger:hover { border-color: #c0392b; color: #c0392b; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .intro { padding: 28px 0 8px; color: var(--muted); font-size: 17px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 28px; font-family: var(--mono); font-size: 13px; }
+  .tag { border: 1px solid var(--line); border-radius: 999px; padding: 2px 11px; color: var(--muted); }
+  .tag.on, .tag:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+  .post-item { padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .post-item h2 { margin: 4px 0 6px; font-size: 24px; line-height: 1.3; }
+  .post-item h2 a { color: var(--fg); }
+  .post-item h2 a:hover { color: var(--accent); text-decoration: none; }
+  .meta { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .excerpt { margin: 6px 0 0; color: var(--muted); font-size: 16px; }
+  .prose h1 { font-size: 34px; line-height: 1.25; margin: 28px 0 8px; }
+  .prose h2 { font-size: 24px; margin: 36px 0 8px; }
+  .prose h3 { font-size: 20px; margin: 28px 0 6px; }
+  .prose p { margin: 16px 0; }
+  .prose ul { padding-left: 22px; }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 14px; line-height: 1.55; }
+  code { font-family: var(--mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  pre code { background: none; padding: 0; }
+  figure { margin: 26px 0; }
+  figure img { max-width: 100%; display: block; margin: 0 auto; border-radius: 10px; border: 1px solid var(--line); }
+  figcaption { font-size: 14px; color: var(--muted); text-align: center; margin-top: 8px; }
+  blockquote { margin: 20px 0; padding: 2px 18px; border-left: 3px solid var(--accent); color: var(--muted); }
+  .back { font-family: var(--mono); font-size: 14px; display: inline-block; margin-top: 24px; }
+  .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .empty { color: var(--muted); padding: 24px 0; }
+  .note { font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 10px 14px; border: 1px dashed var(--line); border-radius: 8px; margin-top: 18px; }
+  .ed label { display: block; font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 18px 0 6px; }
+  .ed input[type=text], .ed textarea { width: 100%; background: var(--card); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: 16px var(--mono); }
+  .ed input[type=text]:focus, .ed textarea:focus { outline: none; border-color: var(--accent); }
+  .ed textarea { min-height: 340px; resize: vertical; line-height: 1.6; }
+  .ed .title { font: 700 24px var(--font) !important; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .status { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .preview { border: 1px solid var(--line); border-radius: 8px; padding: 4px 20px 12px; margin-top: 14px; }
+  .drop { outline: 2px dashed var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <a class="brand" href="#">~/<span>diario</span>-de-projetos</a>
+    <nav>
+      <a href="#">posts</a>
+      <a href="#sobre">sobre</a>
+      <a class="btn primary" id="newBtn" href="#novo" hidden>+ novo post</a>
+      <button class="btn" id="exportBtn" hidden>exportar</button>
+      <button class="btn" id="importBtn" hidden>importar</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+      <button class="btn" id="theme" aria-label="Alternar tema">◐</button>
+    </nav>
+  </header>
+  <main id="app"><p class="empty">Carregando…</p></main>
+  <footer>© 2026 · <a href="#autor" id="authorLink">modo autor</a></footer>
+</div>
+
+<script>
+  /* ---------- State ---------- */
+  var app = document.getElementById("app");
+  var POSTS = [];          // merged list: posts.json + local posts
+  var IMAGES = {};         // image id -> data URI
+  var SITE_IDS = {};       // ids that come from posts.json
+  var ready = false, author = false;
+
+  /* ---------- IndexedDB (local posts and images, per browser) ---------- */
+  var DB = new Promise(function (res, rej) {
+    try {
+      var r = indexedDB.open("diario", 1);
+      r.onupgradeneeded = function () {
+        r.result.createObjectStore("posts", { keyPath: "id" });
+        r.result.createObjectStore("images", { keyPath: "id" });
+      };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    } catch (e) { rej(e); }
+  });
+  function tx(store, mode, fn) {
+    return DB.then(function (d) {
+      return new Promise(function (res, rej) {
+        var t = d.transaction(store, mode), req = fn(t.objectStore(store));
+        t.oncomplete = function () { res(req && req.result); };
+        t.onerror = function () { rej(t.error); };
+      });
+    });
+  }
+
+  /* ---------- Helpers ---------- */
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
+  }
+  function fmt(d) {
+    var p = String(d || "").split("-");
+    if (p.length < 3) return "";
+    var m = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+    return p[2] + " " + m[+p[1] - 1] + " " + p[0];
+  }
+  function mins(body) { return Math.max(1, Math.round(String(body).split(/\s+/).length / 200)); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function slugTag(t) { return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+  function findPost(id) { return POSTS.filter(function (p) { return p.id === id; })[0]; }
+  function allTags() {
+    var set = {};
+    POSTS.forEach(function (p) { (p.tags || []).forEach(function (t) { set[t] = true; }); });
+    return Object.keys(set).sort();
+  }
+
+  /* ---------- Markdown ---------- */
+  function inline(s) {
+    return s.replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  }
+  function md(src) {
+    var out = [], lines = esc(src).split("\n"), code = null, list = false, m;
+    function closeList() { if (list) { out.push("</ul>"); list = false; } }
+    lines.forEach(function (ln) {
+      if (/^```/.test(ln)) {
+        if (code === null) { closeList(); code = []; }
+        else { out.push("<pre><code>" + code.join("\n") + "</code></pre>"); code = null; }
+        return;
+      }
+      if (code !== null) { code.push(ln); return; }
+      if ((m = ln.match(/^!\[(.*?)\]\(img:([a-z0-9]+)\)\s*$/))) {
+        closeList();
+        var src2 = IMAGES[m[2]];
+        out.push("<figure>" + (src2 && /^data:image\//.test(src2) ? '<img src="' + src2 + '" alt="' + m[1] + '">' : "<p>[imagem não encontrada]</p>") +
+          (m[1] ? "<figcaption>" + m[1] + "</figcaption>" : "") + "</figure>");
+      } else if ((m = ln.match(/^(#{1,3}) (.*)$/))) {
+        closeList(); out.push("<h" + m[1].length + ">" + inline(m[2]) + "</h" + m[1].length + ">");
+      } else if ((m = ln.match(/^[-*] (.*)$/))) {
+        if (!list) { out.push("<ul>"); list = true; }
+        out.push("<li>" + inline(m[1]) + "</li>");
+      } else if ((m = ln.match(/^&gt; ?(.*)$/))) {
+        closeList(); out.push("<blockquote>" + inline(m[1]) + "</blockquote>");
+      } else if (ln.trim() === "") {
+        closeList();
+      } else {
+        closeList(); out.push("<p>" + inline(ln) + "</p>");
+      }
+    });
+    closeList();
+    if (code !== null) out.push("<pre><code>" + code.join("\n") + "</code></pre>");
+    return out.join("\n");
+  }
+
+  /* ---------- Data loading: posts.json (published) + IndexedDB (local) ---------- */
+  function refresh() {
+    var siteP = fetch("posts.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+    var localP = tx("posts", "readonly", function (s) { return s.getAll(); }).catch(function () { return []; });
+    var imgP = tx("images", "readonly", function (s) { return s.getAll(); }).catch(function () { return []; });
+    return Promise.all([siteP, localP, imgP]).then(function (r) {
+      var map = {}, deleted = {};
+      IMAGES = {}; SITE_IDS = {};
+      (Array.isArray(r[0]) ? r[0] : []).forEach(function (p) {
+        map[p.id] = p; SITE_IDS[p.id] = true;
+        Object.keys(p.images || {}).forEach(function (k) { IMAGES[k] = p.images[k]; });
+      });
+      r[2].forEach(function (i) { IMAGES[i.id] = i.data; });
+      r[1].forEach(function (p) { if (p.deleted) deleted[p.id] = true; else map[p.id] = p; });
+      POSTS = Object.keys(map).filter(function (id) { return !deleted[id]; })
+        .map(function (id) { return map[id]; })
+        .sort(function (a, b) { return String(b.date).localeCompare(String(a.date)) || (b.updated || 0) - (a.updated || 0); });
+      ready = true;
+    });
+  }
+
+  /* ---------- Views ---------- */
+  function renderList(tag) {
+    if (!ready) { app.innerHTML = '<p class="empty">Carregando…</p>'; return; }
+    var items = POSTS.filter(function (p) { return !tag || (p.tags || []).indexOf(tag) > -1; });
+    var chips = '<a class="tag' + (!tag ? " on" : "") + '" href="#">todos</a>' + allTags().map(function (t) {
+      return '<a class="tag' + (t === tag ? " on" : "") + '" href="#t-' + t + '">#' + esc(t) + "</a>";
+    }).join("");
+    var list = items.length ? items.map(function (p) {
+      return '<div class="post-item"><div class="meta">' + fmt(p.date) + " · " + mins(p.body) + ' min de leitura</div>' +
+        '<h2><a href="#p-' + p.id + '">' + esc(p.title) + "</a></h2>" +
+        '<p class="excerpt">' + esc(p.excerpt || "") + "</p></div>";
+    }).join("") : '<p class="empty">' + (author ? 'Nenhum post ainda. <a href="#novo">Crie o primeiro</a>.' : "Nenhum post por aqui ainda.") + "</p>";
+    app.innerHTML = '<p class="intro">Anotações, documentos e fotos dos meus projetos. Tudo em um só lugar.</p>' +
+      '<div class="tags">' + chips + "</div>" + list +
+      (author ? '<p class="note">Modo autor: os posts novos ficam salvos neste navegador. Para publicar, clique em “exportar”, substitua o arquivo posts.json do repositório e faça commit.</p>' : "");
+  }
+
+  function renderPost(id) {
+    var p = ready && findPost(id);
+    if (!p) { renderList(); return; }
+    var tags = (p.tags || []).map(function (t) { return '<a href="#t-' + t + '">#' + esc(t) + "</a>"; }).join(" ");
+    app.innerHTML = '<article class="prose"><h1>' + esc(p.title) + "</h1>" +
+      '<div class="meta">' + fmt(p.date) + " · " + mins(p.body) + " min · " + tags + "</div>" + md(p.body) + "</article>" +
+      (author ? '<div class="actions"><a class="btn" href="#e-' + p.id + '">editar</a></div>' : "") +
+      '<a class="back" href="#">← voltar aos posts</a>';
+    window.scrollTo(0, 0);
+  }
+
+  function renderAbout() {
+    app.innerHTML = '<article class="prose"><h1>Sobre</h1><p>Este blog é meu caderno digital: guardo aqui anotações, documentos e fotos dos projetos em que trabalho.</p></article><a class="back" href="#">← voltar aos posts</a>';
+  }
+
+  /* ---------- Image handling: resize in the browser, keep as data URI ---------- */
+  function toDataURL(file) {
+    return new Promise(function (res, rej) {
+      if (/gif|svg/.test(file.type)) {
+        var fr = new FileReader();
+        fr.onload = function () { res(fr.result); }; fr.onerror = rej; fr.readAsDataURL(file); return;
+      }
+      var url = URL.createObjectURL(file), im = new Image();
+      im.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(im.width, im.height));
+        var c = document.createElement("canvas");
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(im, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL("image/jpeg", 0.85));
+      };
+      im.onerror = rej; im.src = url;
+    });
+  }
+
+  /* ---------- Editor ---------- */
+  function renderEditor(id) {
+    if (!author) { app.innerHTML = '<p class="note">Ative o modo autor (link no rodapé) para criar posts.</p><a class="back" href="#">← voltar</a>'; return; }
+    if (!ready) { renderList(); return; }
+    var p = id ? findPost(id) : null;
+    if (id && !p) { renderList(); return; }
+    app.innerHTML = '<div class="ed"><h1>' + (p ? "Editar post" : "Novo post") + "</h1>" +
+      '<label for="t">Título</label><input type="text" class="title" id="t" placeholder="Título do post">' +
+      '<label for="g">Tags (separadas por vírgula)</label><input type="text" id="g" placeholder="projeto-alfa, anotações">' +
+      '<label for="b">Texto (Markdown)</label><textarea id="b" placeholder="Escreva aqui. Use ## para títulos, - para listas e ``` para código."></textarea>' +
+      '<div class="toolbar"><button class="btn" id="img" type="button">🖼 adicionar imagem</button>' +
+      '<input type="file" id="file" accept="image/*" multiple hidden>' +
+      '<button class="btn" id="prev" type="button">prévia</button>' +
+      '<span class="status" id="st">Você também pode colar ou arrastar imagens para o texto.</span></div>' +
+      '<div id="pv"></div>' +
+      '<div class="actions"><button class="btn primary" id="save" type="button">salvar</button>' +
+      '<a class="btn" href="#' + (p ? "p-" + p.id : "") + '">cancelar</a>' +
+      (p ? '<button class="btn danger" id="del" type="button">excluir</button>' : "") + "</div></div>";
+
+    var t = document.getElementById("t"), g = document.getElementById("g"), b = document.getElementById("b");
+    var st = document.getElementById("st"), pv = document.getElementById("pv");
+    if (p) { t.value = p.title; g.value = (p.tags || []).join(", "); b.value = p.body; }
+
+    function addImages(files) {
+      var list = Array.prototype.filter.call(files, function (f) { return /^image\//.test(f.type); });
+      if (!list.length) return;
+      var n = 0;
+      st.textContent = "Processando imagem…";
+      list.reduce(function (chain, f) {
+        return chain.then(function () {
+          return toDataURL(f).then(function (data) {
+            var iid = uid();
+            IMAGES[iid] = data;
+            return tx("images", "readwrite", function (s) { return s.put({ id: iid, data: data }); }).then(function () {
+              var alt = f.name.replace(/\.[^.]+$/, "").replace(/[\[\]()]/g, "");
+              var snip = "\n\n![" + alt + "](img:" + iid + ")\n\n";
+              var s0 = b.selectionStart || b.value.length;
+              b.value = b.value.slice(0, s0) + snip + b.value.slice(b.selectionEnd || s0);
+              b.selectionStart = b.selectionEnd = s0 + snip.length;
+              n++;
+            });
+          });
+        });
+      }, Promise.resolve()).then(function () {
+        st.textContent = n + " imagem(ns) adicionada(s). Edite a legenda entre [ ] se quiser.";
+      }).catch(function () { st.textContent = "Não foi possível processar a imagem."; });
+    }
+    var fileIn = document.getElementById("file");
+    document.getElementById("img").addEventListener("click", function () { fileIn.click(); });
+    fileIn.addEventListener("change", function () { addImages(fileIn.files); fileIn.value = ""; });
+    b.addEventListener("paste", function (e) {
+      var fs = e.clipboardData && e.clipboardData.files;
+      if (fs && fs.length) { e.preventDefault(); addImages(fs); }
+    });
+    b.addEventListener("dragover", function (e) { e.preventDefault(); b.classList.add("drop"); });
+    b.addEventListener("dragleave", function () { b.classList.remove("drop"); });
+    b.addEventListener("drop", function (e) {
+      e.preventDefault(); b.classList.remove("drop");
+      if (e.dataTransfer && e.dataTransfer.files.length) addImages(e.dataTransfer.files);
+    });
+    document.getElementById("prev").addEventListener("click", function () {
+      pv.innerHTML = pv.innerHTML ? "" : '<div class="preview prose">' + md(b.value) + "</div>";
+    });
+
+    document.getElementById("save").addEventListener("click", function () {
+      var title = t.value.trim(), body = b.value.trim();
+      if (!title || !body) { st.textContent = "Preencha o título e o texto."; return; }
+      var plain = body.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/[#*`>\-\[\]]/g, "").replace(/\s+/g, " ").trim();
+      var post = {
+        id: p ? p.id : uid(), title: title, body: body,
+        tags: g.value.split(",").map(slugTag).filter(Boolean),
+        excerpt: plain.slice(0, 150) + (plain.length > 150 ? "…" : ""),
+        date: p ? p.date : new Date().toISOString().slice(0, 10),
+        updated: Date.now()
+      };
+      var btn = this; btn.disabled = true; st.textContent = "Salvando…";
+      tx("posts", "readwrite", function (s) { return s.put(post); })
+        .then(refresh).then(function () { location.hash = "p-" + post.id; })
+        .catch(function () { btn.disabled = false; st.textContent = "Erro ao salvar neste navegador."; });
+    });
+
+    var del = document.getElementById("del");
+    if (del) del.addEventListener("click", function () {
+      if (!del.dataset.sure) { del.dataset.sure = "1"; del.textContent = "confirmar exclusão"; return; }
+      // Published posts get a tombstone so they stay hidden until the next export
+      var op = SITE_IDS[p.id]
+        ? tx("posts", "readwrite", function (s) { return s.put({ id: p.id, deleted: true }); })
+        : tx("posts", "readwrite", function (s) { return s.delete(p.id); });
+      op.then(refresh).then(function () { location.hash = ""; });
+    });
+  }
+
+  /* ---------- Export / import ---------- */
+  function exportPosts() {
+    var out = POSTS.map(function (p) {
+      var copy = {}, imgs = {};
+      Object.keys(p).forEach(function (k) { if (k !== "images") copy[k] = p[k]; });
+      (String(p.body).match(/img:[a-z0-9]+/g) || []).forEach(function (ref) {
+        var iid = ref.slice(4);
+        if (IMAGES[iid]) imgs[iid] = IMAGES[iid];
+      });
+      if (Object.keys(imgs).length) copy.images = imgs;
+      return copy;
+    });
+    var blob = new Blob([JSON.stringify(out, null, 1)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "posts.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function importPosts(file) {
+    var fr = new FileReader();
+    fr.onload = function () {
+      try {
+        var arr = JSON.parse(fr.result);
+        if (!Array.isArray(arr)) throw new Error("invalid");
+        var jobs = [];
+        arr.forEach(function (p) {
+          if (!p || !p.id) return;
+          var imgs = p.images || {}; delete p.images;
+          jobs.push(tx("posts", "readwrite", function (s) { return s.put(p); }));
+          Object.keys(imgs).forEach(function (k) {
+            jobs.push(tx("images", "readwrite", function (s) { return s.put({ id: k, data: imgs[k] }); }));
+          });
+        });
+        Promise.all(jobs).then(refresh).then(route);
+      } catch (e) { alert("Arquivo inválido."); }
+    };
+    fr.readAsText(file);
+  }
+
+  /* ---------- Author mode (UI switch only, not a security feature) ---------- */
+  function setAuthor(on) {
+    author = on;
+    try { localStorage.setItem("author", on ? "1" : "0"); } catch (e) {}
+    ["newBtn", "exportBtn", "importBtn"].forEach(function (id) { document.getElementById(id).hidden = !on; });
+    document.getElementById("authorLink").textContent = on ? "sair do modo autor" : "modo autor";
+    document.getElementById("authorLink").setAttribute("href", on ? "#sair" : "#autor");
+  }
+  document.getElementById("exportBtn").addEventListener("click", exportPosts);
+  document.getElementById("importBtn").addEventListener("click", function () { document.getElementById("importFile").click(); });
+  document.getElementById("importFile").addEventListener("change", function (e) { if (e.target.files[0]) importPosts(e.target.files[0]); e.target.value = ""; });
+
+  /* ---------- Router: #p-ID, #t-tag, #e-ID, #novo, #sobre, #autor, #sair ---------- */
+  function route() {
+    var h = location.hash.replace("#", "");
+    if (h === "autor") { setAuthor(true); location.hash = ""; return; }
+    if (h === "sair") { setAuthor(false); location.hash = ""; return; }
+    if (h.indexOf("p-") === 0) renderPost(h.slice(2));
+    else if (h.indexOf("t-") === 0) renderList(h.slice(2));
+    else if (h.indexOf("e-") === 0) renderEditor(h.slice(2));
+    else if (h === "novo") renderEditor(null);
+    else if (h === "sobre") renderAbout();
+    else renderList();
+  }
+  window.addEventListener("hashchange", route);
+
+  /* ---------- Theme ---------- */
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem("theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+  document.getElementById("theme").addEventListener("click", function () {
+    var dark = getComputedStyle(root).getPropertyValue("--bg").trim() === "#14151a";
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+  });
+
+  /* ---------- Boot ---------- */
+  var wasAuthor = false;
+  try { wasAuthor = localStorage.getItem("author") === "1"; } catch (e) {}
+  setAuthor(wasAuthor);
+  refresh().then(route);
+</script>
+</body>
+</html>
